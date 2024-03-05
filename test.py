@@ -1,19 +1,20 @@
 import machine, utime, _thread
 from machine import Pin
  
-left_sensor = machine.ADC(2)
+left_sensor = machine.ADC(0)
 middle_sensor = machine.ADC(1)
-right_sensor = machine.ADC(0)
+right_sensor = machine.ADC(2)
 R_motor_forw = machine.PWM(machine.Pin(3))
 R_motor_forw.freq(1000)
 R_motor_back = machine.PWM(machine.Pin(4))
 R_motor_back.freq(1000)
-L_motor_forw = machine.PWM(machine.Pin(1))
+L_motor_forw = machine.PWM(machine.Pin(5))
 L_motor_forw.freq(1000)
 L_motor_back = machine.PWM(machine.Pin(2))
 L_motor_back.freq(1000)
+# led = Pin("LED", Pin.OUT)
 speed=65000
-backspeed = int(speed*0.3)
+backspeed = int(speed*0.05)
 R_motor_back.duty_u16(0) 
 L_motor_back.duty_u16(0)
 def forward ():
@@ -40,15 +41,14 @@ def start_reader_thread():
         if start.value() == 0:
             if start_pressed == 0:
                 start_pressed = 1
-#               print("Knapp True")
+#                 print("Knapp True")
                 utime.sleep(2)
             elif start_pressed == 1:
                 start_pressed = 0
-#                print("Knapp False")
+#                 print("Knapp False")
                 utime.sleep(2)
 _thread.start_new_thread(start_reader_thread, ())
 sensor_limit = 20000
- 
 while True:
     if start_pressed == 1:
         left_sens = left_sensor.read_u16()
@@ -57,17 +57,22 @@ while True:
 #         utime.sleep(0.01)
 #         led.value(1)
 #         print(left_sens, middle_sens, right_sens)
-        if (right_sens > sensor_limit): #I am pretty sure this will work since it will only drive when this is above 20k
+
+ 
+        if (right_sens > sensor_limit):
             right_turn()
  
         elif (left_sens > sensor_limit):
             left_turn()
-#        elif ((left_sens > sensor_limit) and (middle_sens > sensor_limit) and (right_sens > sensor_limit)):
-#              stop()   #is this needed?
  
+        elif ((left_sens > sensor_limit) and (middle_sens > sensor_limit) and (right_sens > sensor_limit)):
+            backward()
+            
         elif (middle_sens > sensor_limit):
             forward()
-
+ 
+ 
     elif start_pressed == 0:
         stop()
         utime.sleep(0.05)
+#         led.value(0)
